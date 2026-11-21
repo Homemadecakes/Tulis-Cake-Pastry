@@ -1,0 +1,22 @@
+Tuli's Cake & Pastry — Separate Website Files
+
+এই ZIP-এর মধ্যে আছে:
+- index.html
+- style.css
+- script.js
+- assets/ (১০৫টি ছবি)
+
+GitHub-এ আপলোড:
+1. ZIP extract করুন।
+2. Extract করা Tulis_Cake_Pastry_Separate ফোল্ডারের ভেতরের index.html, style.css, script.js ফাইলগুলো আপনার GitHub repository-এর root-এ upload করে পুরোনো একই নামের ফাইল replace করুন।
+3. assets ফোল্ডারের ভেতরের সব ছবি repository-এর assets ফোল্ডারে upload করুন। পুরোনো assets ফাইল এখনই delete করবেন না; নতুন ফাইলগুলো merge করুন।
+4. Commit changes করুন।
+5. GitHub Pages update হলে ওয়েবসাইট refresh করুন। দরকার হলে browser cache এড়াতে মোবাইলে private tab ব্যবহার করুন।
+
+Google Apps Script:
+- Website script.js-এ দেওয়া Apps Script URL হলো আপনার দেওয়া বর্তমান URL।
+- Code.gs GitHub-এ upload করার দরকার নেই; Google Apps Script project-এ থাকবে।
+- Google Sheet-এর Products tab-এ id, price, availability, status header থাকতে হবে।
+- প্রতিটি id ওয়েবসাইটের cake id-এর সঙ্গে মিলতে হবে (যেমন cake-01, cake-02)।
+
+গুরুত্বপূর্ণ: প্রথমে পুরোনো ফাইলের backup রেখে তারপর replace করবেন।

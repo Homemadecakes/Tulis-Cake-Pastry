@@ -9,8 +9,12 @@ let activeFilter='all';
 function isAvailable(p){return !['NOT AVAILABLE','NOT_AVAILABLE','UNAVAILABLE','FALSE','SOLD OUT','OUT OF STOCK'].includes(String(p.availability??'Available').trim().toUpperCase());}
 function isVisibleProduct(p){return p.status!==false&&String(p.status).toUpperCase()!=='FALSE';}
 function fixedPrice(p){
-  if(p.price===''||p.price==null||!Number.isFinite(Number(p.price))||Number(p.price)<=0)return '';
-  return `1 Pound — ৳${Number(p.price).toLocaleString('en-US')}`;
+  if(p.price===''||p.price==null)return '';
+  // Google Sheets may return prices as numbers or formatted text such as "1,100 ৳".
+  const raw=String(p.price).replace(/[^0-9.]/g,'');
+  const amount=Number(raw);
+  if(!raw||!Number.isFinite(amount)||amount<=0)return '';
+  return `1 Pound — ৳${amount.toLocaleString('en-US')}`;
 }
 function productOrder(){
   return PRODUCTS.filter(isVisibleProduct).slice().sort((a,b)=>Number(isAvailable(b))-Number(isAvailable(a)));
@@ -58,7 +62,8 @@ function openCake(id,fromDeepLink=false){
  const order=document.getElementById('modalOrder');
  if(available){
    const url=cakeShareUrl(p);
-   const msg=`আসসালামু আলাইকুম।\nআমি আপনাদের “${p.name}” ডিজাইনটি পছন্দ করেছি। এই কেকটির ১ পাউন্ডের দাম, সাইজ/ওজন ও ফ্লেভারের বিস্তারিত জানাবেন?\n\nনির্দিষ্ট কেকের লিংক: ${url}\n\nধন্যবাদ। ❤️`;
+   const shownPrice=price||'দাম জানতে যোগাযোগ করুন';
+   const msg=`আসসালামু আলাইকুম।\nআমি আপনাদের “${p.name}” ডিজাইনটি পছন্দ করেছি।\n১ পাউন্ডের দাম: ${shownPrice}\nসাইজ/ওজন ও ফ্লেভারের বিস্তারিত জানাবেন?\n\nনির্দিষ্ট কেকের লিংক: ${url}\n\nধন্যবাদ। ❤️`;
    order.href=WA+'?text='+encodeURIComponent(msg);order.style.display='';
  }else{order.removeAttribute('href');order.style.display='none';}
  document.getElementById('cakeModal').classList.add('show');
@@ -78,7 +83,8 @@ function applySheetPrices(rows){
    const r=byId.get(String(p.id).trim());
    if(r){
      if(r.price!==undefined&&r.price!==null)p.price=r.price;
-     if(r.status!==undefined&&r.status!==null&&String(r.status).trim()!=='')p.status=r.status;
+     // Availability controls whether a cake can be ordered. Ignore the API's
+     // separate status field so a FALSE value there cannot hide every product.
      p.availability=(r.availability!==undefined&&String(r.availability).trim()!=='')?r.availability:(p.availability||'Available');
    }
  });

@@ -44,3 +44,11 @@ body{background:var(--cream);color:var(--ink)}
  .hero{padding:31px 0 40px}.hero-grid{gap:15px}.hero h1{font-size:clamp(34px,9vw,42px);margin:13px 0 10px}.hero p{font-size:14px;line-height:1.8}.hero-art{min-height:260px}.hero-photo{height:255px;width:min(280px,78%);border-width:7px}.section{padding:48px 0}.float-wa{right:12px;bottom:12px;padding:10px 13px;font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Mobile menu interaction hardening */
+@media(max-width:650px){
+ .header,.nav{overflow:visible}
+ .menu-toggle{position:relative;z-index:42;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+ .menu{z-index:41;pointer-events:auto}
+ .menu.is-open{display:flex!important;visibility:visible;opacity:1}
+}

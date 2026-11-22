@@ -94,41 +94,32 @@ function loadSheetPrices(){
 }
 renderProducts();loadSheetPrices();if(location.hash.startsWith('#cake=')){const id=decodeURIComponent(location.hash.slice(6));openCake(id,true);}
 
-/* Mobile navigation: delegated capture listener so earlier page scripts cannot block it. */
+/* Reliable accessible mobile navigation; independent of Sheets and order actions */
 (function(){
-  const getMenu=button=>document.getElementById(button.getAttribute('aria-controls')||'siteMenu');
-  const setMenu=(button,menu,open)=>{
-    menu.classList.toggle('is-open',open);
-    button.setAttribute('aria-expanded',open?'true':'false');
-    button.setAttribute('aria-label',open?'মেনু বন্ধ করুন':'মেনু খুলুন');
-    button.textContent=open?'×':'☰';
-  };
-  document.addEventListener('click',event=>{
-    const button=event.target.closest('.menu-toggle');
-    if(!button)return;
-    const menu=getMenu(button);
-    if(!menu)return;
-    event.preventDefault();
-    event.stopPropagation();
-    setMenu(button,menu,!menu.classList.contains('is-open'));
-  },true);
-  document.addEventListener('click',event=>{
-    const menu=document.getElementById('siteMenu');
-    const button=document.querySelector('.menu-toggle');
-    if(!menu||!button||!menu.classList.contains('is-open'))return;
-    if(!menu.contains(event.target)&&!button.contains(event.target))setMenu(button,menu,false);
-    if(event.target.closest('#siteMenu a'))setMenu(button,menu,false);
-  });
-  document.addEventListener('keydown',event=>{
-    if(event.key!=='Escape')return;
-    const menu=document.getElementById('siteMenu');
-    const button=document.querySelector('.menu-toggle');
-    if(menu&&button)setMenu(button,menu,false);
-  });
-  window.addEventListener('resize',()=>{
-    if(window.innerWidth<=650)return;
-    const menu=document.getElementById('siteMenu');
-    const button=document.querySelector('.menu-toggle');
-    if(menu&&button)setMenu(button,menu,false);
-  });
+  function initMobileMenu(){
+    const toggle=document.querySelector('.menu-toggle');
+    const menu=document.querySelector('#siteMenu');
+    if(!toggle||!menu||toggle.dataset.menuReady==='1')return;
+    toggle.dataset.menuReady='1';
+    const setOpen=(open)=>{
+      menu.classList.toggle('is-open',open);
+      toggle.setAttribute('aria-expanded',String(open));
+      toggle.setAttribute('aria-label',open?'মেনু বন্ধ করুন':'মেনু খুলুন');
+      toggle.textContent=open?'×':'☰';
+    };
+    toggle.addEventListener('click',function(event){
+      event.preventDefault();event.stopPropagation();
+      setOpen(!menu.classList.contains('is-open'));
+    });
+    menu.addEventListener('click',function(event){
+      if(event.target.closest('a'))setOpen(false);
+    });
+    document.addEventListener('click',function(event){
+      if(!menu.contains(event.target)&&!toggle.contains(event.target))setOpen(false);
+    });
+    document.addEventListener('keydown',function(event){if(event.key==='Escape')setOpen(false);});
+    window.addEventListener('resize',function(){if(window.innerWidth>650)setOpen(false);});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initMobileMenu,{once:true});
+  else initMobileMenu();
 })();

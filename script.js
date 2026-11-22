@@ -9,8 +9,14 @@ let activeFilter='all';
 function isAvailable(p){return !['NOT AVAILABLE','NOT_AVAILABLE','UNAVAILABLE','FALSE','SOLD OUT','OUT OF STOCK'].includes(String(p.availability??'Available').trim().toUpperCase());}
 function isVisibleProduct(p){return p.status!==false&&String(p.status).toUpperCase()!=='FALSE';}
 function fixedPrice(p){
-  if(p.price===''||p.price==null||!Number.isFinite(Number(p.price))||Number(p.price)<=0)return '';
-  return `${bn(p.price)} ৳ — ১ পাউন্ডের দাম`;
+  const rawPrice = p.price;
+  const min = p.minPrice !== undefined && p.minPrice !== null && String(p.minPrice).trim() !== '' ? Number(p.minPrice) : NaN;
+  const max = p.maxPrice !== undefined && p.maxPrice !== null && String(p.maxPrice).trim() !== '' ? Number(p.maxPrice) : NaN;
+  const direct = rawPrice !== undefined && rawPrice !== null && String(rawPrice).trim() !== '' ? Number(String(rawPrice).replace(/[^0-9.\-]/g,'')) : NaN;
+  if(Number.isFinite(direct) && direct > 0) return `${bn(direct)} ৳ — ১ পাউন্ডের দাম`;
+  if(Number.isFinite(min) && min > 0 && Number.isFinite(max) && max > 0 && min !== max) return `${bn(min)}–${bn(max)} ৳ — ১ পাউন্ডের দাম`;
+  const fallback = Number.isFinite(min) && min > 0 ? min : (Number.isFinite(max) && max > 0 ? max : NaN);
+  return Number.isFinite(fallback) ? `${bn(fallback)} ৳ — ১ পাউন্ডের দাম` : '';
 }
 function productOrder(){
   return PRODUCTS.filter(isVisibleProduct).slice().sort((a,b)=>Number(isAvailable(b))-Number(isAvailable(a)));
@@ -72,16 +78,21 @@ document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal.show').forEach(m=>closeModal(m.id));if(document.getElementById('lightbox').classList.contains('show')){if(e.key==='ArrowRight')showReview(currentReviewIndex+1);if(e.key==='ArrowLeft')showReview(currentReviewIndex-1);}});
 const lightbox=document.getElementById('lightbox');lightbox.addEventListener('touchstart',e=>{reviewTouchStartX=e.changedTouches[0].screenX;},{passive:true});lightbox.addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-reviewTouchStartX;if(Math.abs(dx)>45)showReview(currentReviewIndex+(dx<0?1:-1));},{passive:true});
 function applySheetPrices(rows){
- if(!Array.isArray(rows))return;
- const byId=new Map(rows.map(x=>[String(x.id).trim(),x]));
+ if(!Array.isArray(rows)){console.warn('Google Sheets response is not an array:',rows);return;}
+ const byId=new Map(rows.filter(x=>x&&x.id!==undefined).map(x=>[String(x.id).trim(),x]));
+ let matched=0;
  PRODUCTS.forEach(p=>{
    const r=byId.get(String(p.id).trim());
    if(r){
-     if(r.price!==undefined&&r.price!==null)p.price=r.price;
+     matched++;
+     if(r.price!==undefined&&r.price!==null&&String(r.price).trim()!=='')p.price=r.price;
+     if(r.minPrice!==undefined&&r.minPrice!==null&&String(r.minPrice).trim()!=='')p.minPrice=r.minPrice;
+     if(r.maxPrice!==undefined&&r.maxPrice!==null&&String(r.maxPrice).trim()!=='')p.maxPrice=r.maxPrice;
      if(r.status!==undefined&&r.status!==null&&String(r.status).trim()!=='')p.status=r.status;
      p.availability=(r.availability!==undefined&&String(r.availability).trim()!=='')?r.availability:(p.availability||'Available');
    }
  });
+ console.info(`Google Sheets prices loaded: ${matched}/${PRODUCTS.length} products matched.`);
  renderProducts();
 }
 window.receiveCakePrices=applySheetPrices;
